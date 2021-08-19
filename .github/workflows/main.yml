@@ -17,13 +17,21 @@ jobs:
         with:
           repository: boasvdp/extract_genes_ABRicate
           path: extract_genes_ABRicate
-      - name: conda
-        run: |
+#      - name: conda
+#        run: |
+#         cd $GITHUB_WORKSPACE/extract_genes_ABRicate
+#         conda env create -f env.yaml
+      - name: enter repo folder
+        run : |
          cd $GITHUB_WORKSPACE/extract_genes_ABRicate
-         conda env create -f env.yaml
+      - uses: actions/checkout@v2
+      - name: install mamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: env.yaml
       - name: test extract_genes_ABRicate
         run: |
-         conda activate env_extract_genes_ABRicate
+         echo "CONDA_DEFAULT_ENV: $CONDA_DEFAULT_ENV"
          python extract_genes_abricate.py --help
          # Test with a path
          python extract_genes_abricate.py -a test/test.tsv -g test/genomes -o test/out -s .fasta
