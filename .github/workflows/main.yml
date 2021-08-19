@@ -1,0 +1,39 @@
+# This is a basic workflow to test the software
+
+name: main
+
+on:
+  push:
+    branches: [ main, dev, patch-issue1 ]
+  pull_request:
+    branches: [ main, dev, patch-issue1 ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: boasvdp/extract_genes_ABRicate
+          path: extract_genes_ABRicate
+      - name: conda
+        run: |
+         cd $GITHUB_WORKSPACE/extract_genes_ABRicate
+         conda env create -f env.yaml
+      - name: test extract_genes_ABRicate
+        run: |
+         conda activate env_extract_genes_ABRicate
+         python extract_genes_abricate.py --help
+         # Test with a path
+         python extract_genes_abricate.py -a test/test.tsv -g test/genomes -o test/out -s .fasta
+         cmp test/correct_blaCTX-M-15.out test/out/input_blaCTX-M-15.out
+         cmp test/correct_blaCTX-M-15_2.out test/out/input_blaCTX-M-15_2.out
+         # Testing without a path
+         python extract_genes_abricate.py -a test/test_nopath.tsv -g test/genomes -o test/out_nopath -s .fasta
+         cmp test/correct_blaCTX-M-15.out test/out_nopath/input_blaCTX-M-15.out
+         cmp test/correct_blaCTX-M-15_2.out test/out_nopath/input_blaCTX-M-15_2.out
+         # Testing on csv
+         python extract_genes_abricate.py -a test/test.csv -g test/genomes -o test/out_csv -s .fasta --csv
+         cmp test/correct_blaCTX-M-15.out test/out_csv/input_blaCTX-M-15.out
+         cmp test/correct_blaCTX-M-15_2.out test/out_csv/input_blaCTX-M-15_2.out
