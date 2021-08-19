@@ -4,9 +4,9 @@ name: main
 
 on:
   push:
-    branches: [ main, dev, patch-issue1 ]
+    branches: [ master, dev ]
   pull_request:
-    branches: [ main, dev, patch-issue1 ]
+    branches: [ master, dev ]
 
 jobs:
   build:
