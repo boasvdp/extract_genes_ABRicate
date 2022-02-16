@@ -36,14 +36,17 @@ jobs:
          echo "CONDA_DEFAULT_ENV: $CONDA_DEFAULT_ENV"
          python extract_genes_abricate.py --help
          # Test with a path
-         python extract_genes_abricate.py -a test/test.tsv -g test/genomes -o test/out -s .fasta
-         cmp test/correct_blaCTX-M-15.out test/out/input_blaCTX-M-15.out
-         cmp test/correct_blaCTX-M-15_2.out test/out/input_blaCTX-M-15_2.out
+         python extract_genes_abricate.py -a test/input/test.tsv -g test/genomes -o test/out -s .fasta
+         cmp test/correct/correct_blaCTX-M-15.out test/out/input_blaCTX-M-15.out
+         cmp test/correct/correct_blaCTX-M-15_2.out test/out/input_blaCTX-M-15_2.out
          # Testing without a path
-         python extract_genes_abricate.py -a test/test_nopath.tsv -g test/genomes -o test/out_nopath -s .fasta
-         cmp test/correct_blaCTX-M-15.out test/out_nopath/input_blaCTX-M-15.out
-         cmp test/correct_blaCTX-M-15_2.out test/out_nopath/input_blaCTX-M-15_2.out
+         python extract_genes_abricate.py -a test/input/test_nopath.tsv -g test/genomes -o test/out_nopath -s .fasta
+         cmp test/correct/correct_blaCTX-M-15.out test/out_nopath/input_blaCTX-M-15.out
+         cmp test/correct/correct_blaCTX-M-15_2.out test/out_nopath/input_blaCTX-M-15_2.out
          # Testing on csv
-         python extract_genes_abricate.py -a test/test.csv -g test/genomes -o test/out_csv -s .fasta --csv
-         cmp test/correct_blaCTX-M-15.out test/out_csv/input_blaCTX-M-15.out
-         cmp test/correct_blaCTX-M-15_2.out test/out_csv/input_blaCTX-M-15_2.out
+         python extract_genes_abricate.py -a test/input/test.csv -g test/genomes -o test/out_csv -s .fasta --csv
+         cmp test/correct/correct_blaCTX-M-15.out test/out_csv/input_blaCTX-M-15.out
+         cmp test/correct/correct_blaCTX-M-15_2.out test/out_csv/input_blaCTX-M-15_2.out
+         # Testing for gene cluster
+         python extract_genes_abricate.py -a test/input/test.tsv -g test/genomes -o test/out_genecluster -s .fasta --genecluster
+         cmp test/correct/correct_genecluster.fasta test/out_genecluster/input_ncbi.out

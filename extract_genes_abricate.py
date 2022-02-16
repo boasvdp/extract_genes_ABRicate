@@ -69,6 +69,22 @@ def process_antisense(row, genome, output):
 
   return record
 
+def parse_multiple_rows(df, suffix, genomedir):
+  original_file_name = df['#FILE'].unique()
+  assert len(original_file_name) == 1
+  strain = str(os.path.basename(original_file_name[0]).replace(suffix, ''))
+  genome = genomedir  + '/' + strain + suffix
+  original_db = df['DATABASE'].unique()
+  assert len(original_db) == 1
+  combination = strain + '_' + original_db[0]
+  combination = re.sub('[^\w\-_\. ]', '_', combination)
+  output = args.outdir + '/' + combination + '.out'
+  return genome, combination, output
+
+def find_gene_boundary_extremes(df):
+  list_extreme_gene_boundaries = [df['START'].min(), df['START'].max(), df['END'].min(), df['END'].max()]
+  return min(list_extreme_gene_boundaries), max(list_extreme_gene_boundaries)
+
 def update_record(record, combination):
   record.id = combination
   record.description = ''
@@ -91,7 +107,18 @@ def main_genes(df, args):
     SeqIO.write(updated_record, output, "fasta")
 
 def main_genecluster(df, args):
-  print("functionality will be added")
+  genome, combination, output = parse_multiple_rows(df, args.suffix, args.genomedir)
+  original_contig = df['SEQUENCE'].unique()
+  assert len(original_contig) == 1
+  START, END = find_gene_boundary_extremes(df)
+  combined_row = pd.Series({'SEQUENCE': original_contig[0], 'START': START, 'END': END})
+  strand_series = df['STRAND'].value_counts()
+  if strand_series.loc['-'] > strand_series.loc['+']:
+    process_antisense(combined_row, genome, output)
+  else:
+    record = process_sense(combined_row, genome, output)
+  updated_record = update_record(record, combination)
+  SeqIO.write(updated_record, output, "fasta")
 
 def main(args):
   check_outdir(args.outdir)
