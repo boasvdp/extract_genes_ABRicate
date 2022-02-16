@@ -7,6 +7,7 @@ import argparse
 import os
 import re
 import sys
+import logging
 
 def check_outdir(outdir):
   if not os.path.exists(outdir):
@@ -38,8 +39,7 @@ def parse_row(row, combinations_passed, suffix, genomedir):
   combination = re.sub('[^\w\-_\. ]', '_', combination)
   checked_combination, combinations_passed, found_duplicate = check_combination(combination, combinations_passed)
   if found_duplicate:
-    printstring = ''.join(['INFO: ', combination, ' is found more than once in ', strain, '. Writing output sequence to ', checked_combination])
-    print(printstring, file=sys.stderr)
+    logging.info(f"{combination} is found more than once in {strain}. Writing output sequence to {checked_combination}")
   output = args.outdir + '/' + checked_combination + '.out'
   return genome, checked_combination, output
 
@@ -109,7 +109,7 @@ def main_genes(df, args):
 def main_genecluster(df, args):
   genome, combination, output = parse_multiple_rows(df, args.suffix, args.genomedir)
   original_contig = df['SEQUENCE'].unique()
-  assert len(original_contig) == 1
+  assert len(original_contig) == 1, "Hits are located on multiple contigs"
   START, END = find_gene_boundary_extremes(df)
   combined_row = pd.Series({'SEQUENCE': original_contig[0], 'START': START, 'END': END})
   strand_series = df['STRAND'].value_counts()
