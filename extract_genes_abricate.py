@@ -79,10 +79,7 @@ def cleanup():
     if os.path.isfile(file):
       os.remove(file)
 
-def main(args):
-  check_outdir(args.outdir)
-  df = read_abricatefile(args.abricatefile, args.csv)
-  cleanup()
+def main_genes(df, args):
   combinations_passed = {}
   for index, row in df.iterrows():
     genome, checked_combination, output = parse_row(row, combinations_passed, args.suffix, args.genomedir)
@@ -92,6 +89,18 @@ def main(args):
       record = process_antisense(row, genome, output)
     updated_record = update_record(record, checked_combination)
     SeqIO.write(updated_record, output, "fasta")
+
+def main_genecluster(df, args):
+  print("functionality will be added")
+
+def main(args):
+  check_outdir(args.outdir)
+  df = read_abricatefile(args.abricatefile, args.csv)
+  cleanup()
+  if args.genecluster == False:
+    main_genes(df, args)
+  else:
+    main_genecluster(df, args)
   cleanup()
 
 if __name__ == '__main__':
@@ -101,6 +110,7 @@ if __name__ == '__main__':
   parser.add_argument("-g", "--genomedir", dest="genomedir", help="directory containing genomes", metavar="GENOMES DIR", required=True, type=str)
   parser.add_argument("-o", "--output", dest="outdir", help="directory for output", metavar="OUTPUT DIR", required=True, type=str)
   parser.add_argument("-s", "--suffix", dest="suffix", default=".fasta", help="Genome assembly file suffix (default: .fasta)")
+  parser.add_argument("--genecluster", dest="genecluster", action="store_true", help="Extract all genes to a single fasta if located on a single contig (default: false)")
   parser.add_argument("--csv", dest="csv", action="store_true", help="Use this option if your ABRicate output file is comma-separated (default: parse as tab-separated file).")
   
   args = parser.parse_args()
