@@ -57,5 +57,5 @@ jobs:
          cmp test/correct/correct_multiple_strainA_blaCTX-M-15.out test/out_multiple/strainA_blaCTX-M-15.out
          cmp test/correct/correct_multiple_strainB_blaCTX-M-15.out test/out_multiple/strainB_blaCTX-M-15.out
 
-         # Gene cluster extraction should work now for files with multiple genomes
-         python extract_genes_abricate.py -a test/input/test_multiple.tsv -g test/genomes -o test/out_multiple_genecluster --genecluster
+         # Gene cluster extraction should still fail for files with multiple genomes
+         ! python extract_genes_abricate.py -a test/input/test_multiple.tsv -g test/genomes -o test/out_multiple_genecluster --genecluster
