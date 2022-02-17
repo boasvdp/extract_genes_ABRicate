@@ -10,12 +10,14 @@ import sys
 import logging
 
 def check_outdir(outdir):
+  logging.debug(f"Calling function check_outdir")
   logging.debug(f"Checking whether {outdir} exists")
   if not os.path.exists(outdir):
     logging.debug(f"{outdir} does not exist, making this now")
     os.makedirs(outdir)
 
 def read_abricatefile(abricatefile, csv):
+  logging.debug(f"Calling function read_abricatefile")
   logging.debug(f"Checking whether ABRicate file should be read as a csv file: {csv}")
   if csv == True:
     logging.debug(f"Reading {abricatefile} as a csv file")
@@ -26,6 +28,7 @@ def read_abricatefile(abricatefile, csv):
   return df
 
 def check_combination(combination, combinations_passed):
+  logging.debug(f"Calling function check_combination")
   found_duplicate = False
   logging.debug(f"Checking whether {combination} is in {combinations_passed}")
   if combination not in combinations_passed:
@@ -42,6 +45,7 @@ def check_combination(combination, combinations_passed):
   return checked_combination, combinations_passed, found_duplicate
 
 def parse_row(row, combinations_passed, suffix, genomedir):
+  logging.debug(f"Calling function parse_row")
   logging.debug(f"Constructing strain name")
   strain = str(os.path.basename(row['#FILE'])).replace(suffix, '')
   logging.debug(f"Genome name is constructed based on {genomedir} and {strain} and {suffix}")
@@ -59,6 +63,7 @@ def parse_row(row, combinations_passed, suffix, genomedir):
   return genome, checked_combination, output
 
 def process_sense(row, genome, output):
+  logging.debug(f"Calling function process_sense")
   writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
   logging.debug(f"{writestring} is written to tmp.txt")
   with open('tmp.txt', 'w') as f:
@@ -74,6 +79,7 @@ def process_sense(row, genome, output):
   return record
 
 def process_antisense(row, genome, output):
+  logging.debug(f"Calling function process_antisense")
   writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
   logging.debug(f"{writestring} is written to tmp.txt")
   with open('tmp.txt', 'w') as f:
@@ -89,6 +95,7 @@ def process_antisense(row, genome, output):
   return record
 
 def parse_multiple_rows(df, suffix, genomedir):
+  logging.debug(f"Calling function parse_multiple_rows")
   logging.debug(f"Assert whether only one FILE is found")
   original_file_name = df['#FILE'].unique()
   assert len(original_file_name) == 1
@@ -108,11 +115,13 @@ def parse_multiple_rows(df, suffix, genomedir):
   return genome, combination, output
 
 def find_gene_boundary_extremes(df):
+  logging.debug(f"Calling function find_gene_boundary_extremes")
   logging.debug(f"Finding gene boundaries based on whole file")
   list_extreme_gene_boundaries = [df['START'].min(), df['START'].max(), df['END'].min(), df['END'].max()]
   return min(list_extreme_gene_boundaries), max(list_extreme_gene_boundaries)
 
 def update_record(record, combination):
+  logging.debug(f"Calling function update_record")
   logging.debug(f"Updating record ID using {combination}")
   record.id = combination
   logging.debug(f"Removing description from record")
@@ -120,6 +129,7 @@ def update_record(record, combination):
   return record
 
 def cleanup():
+  logging.debug(f"Calling function cleanup")
   logging.debug(f"Cleaning up leftover files")
   for file in ['rev.fasta', 'tmp.txt']:
     if os.path.isfile(file):
@@ -127,6 +137,7 @@ def cleanup():
       os.remove(file)
 
 def main_genes(df, args):
+  logging.debug(f"Calling function main_genes")
   combinations_passed = {}
   logging.debug(f"Looping through df")
   for index, row in df.iterrows():
@@ -146,6 +157,7 @@ def main_genes(df, args):
     SeqIO.write(updated_record, output, "fasta")
 
 def main_genecluster(df, args):
+  logging.debug(f"Calling function main_genecluster")
   logging.debug(f"Parse multiple rows at once for gene cluster processing")
   genome, combination, output = parse_multiple_rows(df, args.suffix, args.genomedir)
   logging.debug(f"Assert that STRAND column is found in abricatefile")
@@ -186,12 +198,13 @@ def main_genecluster(df, args):
     logging.debug(f"No sense hits in file: processing as antisense")
     decision_strand = 'antisense'
 
+  logging.debug(f"decision_strand has value {decision_strand}")
   if decision_strand == 'sense':
     logging.debug(f"Processing combined_row with gene cluster in sense")
-    record = process_antisense(combined_row, genome, output)
+    record = process_sense(combined_row, genome, output)
   elif decision_strand == 'antisense':
     logging.debug(f"Processing combined_row with gene cluster in antisense")
-    record = process_sense(combined_row, genome, output)
+    record = process_antisense(combined_row, genome, output)
   else:
     logging.critical(f"decision_strand is {decision_strand}. This is an invalid value")
   logging.debug(f"Updating record with {combination}")
@@ -200,6 +213,7 @@ def main_genecluster(df, args):
   SeqIO.write(updated_record, output, "fasta")
 
 def main(args):
+  logging.debug(f"Calling function main")
   check_outdir(args.outdir)
   df = read_abricatefile(args.abricatefile, args.csv)
   cleanup()
@@ -212,7 +226,6 @@ def main(args):
   cleanup()
 
 if __name__ == '__main__':
-  logging.debug(f"Checking arguments")
   parser = argparse.ArgumentParser(description='Extract genes from genes based on ABRicate output.')
   
   parser.add_argument("-a", "--abricatefile", dest="abricatefile", help="ABRicate file to parse genes", metavar="ABRICATE FILE", required=True, type=str)
@@ -225,7 +238,6 @@ if __name__ == '__main__':
   
   args = parser.parse_args()
   
-  logging.debug(f"Checking verbosity argument")
   if not args.verbose:
     logging.basicConfig(level=logging.WARNING)
   elif args.verbose == 1:
