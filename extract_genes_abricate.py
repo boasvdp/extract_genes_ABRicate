@@ -86,11 +86,10 @@ def process_antisense(row, genome, output):
     f.write(writestring)
 
   logging.debug(f"seqtk is called using subprocess for {genome}")
-  with open("rev.fasta", "w") as rev:
+  with open("rev.fasta", "w+b") as rev:
     subprocess.call(["seqtk", "subseq", genome, "tmp.txt"], stdout = rev)
-
-  logging.debug(f"rev.fasta is read using SeqIO and reverse complemented")
-  record = SeqIO.read("rev.fasta", "fasta").reverse_complement()
+    logging.debug(f"rev.fasta is read using SeqIO and reverse complemented")
+    record = SeqIO.read("rev.fasta", "fasta").reverse_complement()
 
   return record
 
