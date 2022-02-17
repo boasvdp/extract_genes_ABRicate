@@ -50,3 +50,12 @@ jobs:
          # Testing for gene cluster
          python extract_genes_abricate.py -a test/input/test.tsv -g test/genomes -o test/out_genecluster -s .fasta --genecluster
          cmp test/correct/correct_genecluster.fasta test/out_genecluster/input_ncbi.out
+      - name: Tests with combined ABRicate files from multiple genomes
+        run: |
+         # Normal gene extraction should work for files with multiple genomes
+         python extract_genes_abricate.py -a test/input/test_multiple.tsv -g test/genomes -o test/out_multiple
+         cmp test/correct/correct_multiple_strainA_blaCTX-M-15.out test/out_multiple/strainA_blaCTX-M-15.out
+         cmp test/correct/correct_multiple_strainB_blaCTX-M-15.out test/out_multiple/strainB_blaCTX-M-15.out
+
+         # Gene cluster extraction should fail for files with multiple genomes
+         ! python extract_genes_abricate.py -a test/input/test_multiple.tsv -g test/genomes -o test/out_multiple_genecluster --genecluster

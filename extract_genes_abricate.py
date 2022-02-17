@@ -103,7 +103,7 @@ def parse_multiple_rows(df, suffix, genomedir):
   logging.debug(f"Filtering {combination} using regex")
   combination = re.sub('[^\w\-_\. ]', '_', combination)
   logging.debug(f"Name is now {combination}")
-  logging.debug(f"Constructing output file name for {checked_combination}")
+  logging.debug(f"Constructing output file name for {combination}")
   output = args.outdir + '/' + combination + '.out'
   return genome, combination, output
 
