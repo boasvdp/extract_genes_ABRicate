@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import logging
+import tempfile
 
 def check_outdir(outdir):
   logging.debug(f"Calling function check_outdir")
@@ -65,13 +66,13 @@ def parse_row(row, combinations_passed, suffix, genomedir):
 def process_sense(row, genome, output):
   logging.debug(f"Calling function process_sense")
   writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
-  logging.debug(f"{writestring} is written to tmp.txt")
-  with open('tmp.txt', 'w') as f:
-    f.write(writestring)
-
-  logging.debug(f"seqtk is called using subprocess for {genome}")
-  with open(output, "w") as out:
-    subprocess.call(["seqtk", "subseq", genome, "tmp.txt"], stdout=out)
+  logging.debug(f"{writestring} is written to NamedTemporaryFile")
+  with tempfile.NamedTemporaryFile(mode='w+') as tf:
+    tf.write(writestring)
+    tf.seek(0)
+    logging.debug(f"seqtk is called using subprocess for {genome}")
+    with open(output, 'w+') as out:
+      subprocess.call(["seqtk", "subseq", genome, tf.name], stdout=out)
 
   logging.debug(f"{output} is read using SeqIO")
   record = SeqIO.read(output, "fasta")
@@ -81,15 +82,16 @@ def process_sense(row, genome, output):
 def process_antisense(row, genome, output):
   logging.debug(f"Calling function process_antisense")
   writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
-  logging.debug(f"{writestring} is written to tmp.txt")
-  with open('tmp.txt', 'w') as f:
-    f.write(writestring)
-
-  logging.debug(f"seqtk is called using subprocess for {genome}")
-  with open("rev.fasta", "w+b") as rev:
-    subprocess.call(["seqtk", "subseq", genome, "tmp.txt"], stdout = rev)
-    logging.debug(f"rev.fasta is read using SeqIO and reverse complemented")
-    record = SeqIO.read("rev.fasta", "fasta").reverse_complement()
+  logging.debug(f"{writestring} is written to NamedTemporaryFile")
+  with tempfile.NamedTemporaryFile(mode='w+') as tf:
+    tf.write(writestring)
+    tf.seek(0)
+    logging.debug(f"seqtk is called using subprocess for {genome}")
+    with tempfile.NamedTemporaryFile(mode='w+') as rev:
+      subprocess.call(["seqtk", "subseq", genome, tf.name], stdout = rev)
+      rev.seek(0)
+      logging.debug(f"NamedTemporaryFile is read using SeqIO and reverse complemented")
+      record = SeqIO.read(rev.name, "fasta").reverse_complement()
 
   return record
 
@@ -126,14 +128,6 @@ def update_record(record, combination):
   logging.debug(f"Removing description from record")
   record.description = ''
   return record
-
-def cleanup():
-  logging.debug(f"Calling function cleanup")
-  logging.debug(f"Cleaning up leftover files")
-  for file in ['rev.fasta', 'tmp.txt']:
-    if os.path.isfile(file):
-      logging.debug(f"{file} is found and will be removed")
-      os.remove(file)
 
 def main_genes(df, args):
   logging.debug(f"Calling function main_genes")
@@ -215,14 +209,12 @@ def main(args):
   logging.debug(f"Calling function main")
   check_outdir(args.outdir)
   df = read_abricatefile(args.abricatefile, args.csv)
-  cleanup()
   if args.genecluster == False:
     logging.debug(f"Executing main_genes for extraction of single genes")
     main_genes(df, args)
   else:
     logging.debug(f"Executing main_genecluster for extraction of gene clusters")
     main_genecluster(df, args)
-  cleanup()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Extract genes from genes based on ABRicate output.')
