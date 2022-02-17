@@ -132,6 +132,8 @@ def main_genes(df, args):
   for index, row in df.iterrows():
     logging.debug(f"Parsing row {index}")
     genome, checked_combination, output = parse_row(row, combinations_passed, args.suffix, args.genomedir)
+    logging.debug(f"Assert that STRAND column is found in abricatefile")
+    assert 'STRAND' in row, "STRAND column is not found in ABRicate file, was ABRicate version 0.9.8 or later?"
     if row['STRAND'] != '-':
       logging.debug(f"Processing row with gene in sense")
       record = process_sense(row, genome, output)
@@ -149,18 +151,37 @@ def main_genecluster(df, args):
   logging.debug(f"Assert whether all hits are on a single contig")
   original_contig = df['SEQUENCE'].unique()
   assert len(original_contig) == 1, "Hits are located on multiple contigs"
+  logging.debug(f"Assert that STRAND column is found in abricatefile")
+  assert 'STRAND' in df, "STRAND column is not found in ABRicate file, was ABRicate version 0.9.8 or later?"
   logging.debug(f"Find gene boundary extremes")
   START, END = find_gene_boundary_extremes(df)
   logging.debug(f"Construct pandas Series mimicking an object from df.iterrows")
   combined_row = pd.Series({'SEQUENCE': original_contig[0], 'START': START, 'END': END})
   logging.debug(f"Check how many hits are sense or antisense")
   strand_series = df['STRAND'].value_counts()
-  if strand_series.loc['-'] > strand_series.loc['+']:
+  if ('+' in strand_series) and ('-' in strand_series):
+    logging.debug(f"Sense and antisense hits in abricate output")
+    if strand_series.loc['-'] > strand_series.loc['+']:
+      logging.debug(f"More antisense hits are found")
+      decision_strand = 'antisense'
+    else:
+      logging.debug(f"More sense hits are found")
+      decision_strand = 'sense'
+  elif '-' not in strand_series:
+    logging.debug(f"No antisense hits in file: processing as sense")
+    decision_strand = 'sense'
+  elif '+' not in strand_series:
+    logging.debug(f"No sense hits in file: processing as antisense")
+    decision_strand = 'antisense'
+
+  if decision_strand == 'sense':
     logging.debug(f"Processing combined_row with gene cluster in sense")
     record = process_antisense(combined_row, genome, output)
-  else:
+  elif decision_strand == 'antisense':
     logging.debug(f"Processing combined_row with gene cluster in antisense")
     record = process_sense(combined_row, genome, output)
+  else:
+    logging.critical(f"decision_strand is {decision_strand}. This is an invalid value")
   logging.debug(f"Updating record with {combination}")
   updated_record = update_record(record, combination)
   logging.debug(f"Writing updated record to {output} as fasta file")
