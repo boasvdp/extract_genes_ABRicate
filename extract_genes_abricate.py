@@ -161,7 +161,7 @@ def main_genecluster(df, args):
   else:
     logging.debug(f"Processing combined_row with gene cluster in antisense")
     record = process_sense(combined_row, genome, output)
-  logging.debug(f"Updating record with {checked_combination}")
+  logging.debug(f"Updating record with {combination}")
   updated_record = update_record(record, combination)
   logging.debug(f"Writing updated record to {output} as fasta file")
   SeqIO.write(updated_record, output, "fasta")
