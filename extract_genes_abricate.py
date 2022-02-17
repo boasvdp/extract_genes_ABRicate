@@ -148,17 +148,29 @@ def main_genes(df, args):
 def main_genecluster(df, args):
   logging.debug(f"Parse multiple rows at once for gene cluster processing")
   genome, combination, output = parse_multiple_rows(df, args.suffix, args.genomedir)
-  logging.debug(f"Assert whether all hits are on a single contig")
-  original_contig = df['SEQUENCE'].unique()
-  assert len(original_contig) == 1, "Hits are located on multiple contigs"
   logging.debug(f"Assert that STRAND column is found in abricatefile")
   assert 'STRAND' in df, "STRAND column is not found in ABRicate file, was ABRicate version 0.9.8 or later?"
+  logging.debug(f"Checking the number of contigs on which hits are found")
+  value_count_contigs = df['SEQUENCE'].value_counts()
+  total_nr_contigs = len(value_count_contigs)
+  total_nr_hits = value_count_contigs.sum()
+  most_common_contig = value_count_contigs.index[0]
+  logging.debug(f"Total number of contigs in file are checked")
+  if total_nr_contigs > 1:
+    logging.warning(f"Hits were found on {total_nr_contigs}. Contig {most_common_contig} has most hits and will be selected")
+    if (value_count_contigs[0] / total_nr_hits) < 0.5:
+      logging.warning(f"Contig {most_common_contig} has most hits, but contains less than half of all hits")
+    elif value_count_contigs[0] == value_count_contigs[1]:
+      logging.warning(f"The same number of hits were found on (at least) the top two contigs. Top contig is selected based on value_counts() sorting")
+  df_most_common_contig = df[df['SEQUENCE'] == most_common_contig]
   logging.debug(f"Find gene boundary extremes")
-  START, END = find_gene_boundary_extremes(df)
+  START, END = find_gene_boundary_extremes(df_most_common_contig)
+
   logging.debug(f"Construct pandas Series mimicking an object from df.iterrows")
-  combined_row = pd.Series({'SEQUENCE': original_contig[0], 'START': START, 'END': END})
+  combined_row = pd.Series({'SEQUENCE': most_common_contig, 'START': START, 'END': END})
+
   logging.debug(f"Check how many hits are sense or antisense")
-  strand_series = df['STRAND'].value_counts()
+  strand_series = df_most_common_contig['STRAND'].value_counts()
   if ('+' in strand_series) and ('-' in strand_series):
     logging.debug(f"Sense and antisense hits in abricate output")
     if strand_series.loc['-'] > strand_series.loc['+']:
