@@ -65,7 +65,9 @@ def parse_row(row, combinations_passed, suffix, genomedir):
 
 def process_sense(row, genome, output):
   logging.debug(f"Calling function process_sense")
-  writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
+  START = row['START'] - 1
+  END = row['END']
+  writestring = ' '.join([str(row['SEQUENCE']), str(START), str(END)])
   logging.debug(f"{writestring} is written to NamedTemporaryFile")
   with tempfile.NamedTemporaryFile(mode='w+') as tf:
     tf.write(writestring)
@@ -81,7 +83,9 @@ def process_sense(row, genome, output):
 
 def process_antisense(row, genome, output):
   logging.debug(f"Calling function process_antisense")
-  writestring = str(row['SEQUENCE']) + " " + str(row['START'] - 1) + " " + str(row['END'])
+  START = row['START'] - 1
+  END = row['END']
+  writestring = ' '.join([str(row['SEQUENCE']), str(START), str(END)])
   logging.debug(f"{writestring} is written to NamedTemporaryFile")
   with tempfile.NamedTemporaryFile(mode='w+') as tf:
     tf.write(writestring)
