@@ -67,7 +67,8 @@ def process_sense(row, genome, output):
   logging.debug(f"Calling function process_sense")
   START = row['START'] - 1
   END = row['END']
-  writestring = ' '.join([str(row['SEQUENCE']), str(START), str(END)])
+  START_updated, END_updated = process_flanking(START, END, args.flanking, args.flanking_bp)
+  writestring = ' '.join([str(row['SEQUENCE']), str(START_updated), str(END_updated)])
   logging.debug(f"{writestring} is written to NamedTemporaryFile")
   with tempfile.NamedTemporaryFile(mode='w+') as tf:
     tf.write(writestring)
@@ -85,7 +86,8 @@ def process_antisense(row, genome, output):
   logging.debug(f"Calling function process_antisense")
   START = row['START'] - 1
   END = row['END']
-  writestring = ' '.join([str(row['SEQUENCE']), str(START), str(END)])
+  START_updated, END_updated = process_flanking(START, END, args.flanking, args.flanking_bp)
+  writestring = ' '.join([str(row['SEQUENCE']), str(START_updated), str(END_updated)])
   logging.debug(f"{writestring} is written to NamedTemporaryFile")
   with tempfile.NamedTemporaryFile(mode='w+') as tf:
     tf.write(writestring)
@@ -133,6 +135,12 @@ def update_record(record, combination):
   record.description = ''
   return record
 
+def process_flanking(start, end, flanking, flanking_bp):
+  if flanking:
+    start = max(0, start - flanking_bp)
+    end = end + flanking_bp
+  return start, end
+
 def main_genes(df, args):
   logging.debug(f"Calling function main_genes")
   combinations_passed = {}
@@ -174,10 +182,9 @@ def main_genecluster(df, args):
   df_most_common_contig = df[df['SEQUENCE'] == most_common_contig]
   logging.debug(f"Find gene boundary extremes")
   START, END = find_gene_boundary_extremes(df_most_common_contig)
-
+  START_updated, END_updated = process_flanking(START, END, args.flanking, args.flanking_bp)
   logging.debug(f"Construct pandas Series mimicking an object from df.iterrows")
-  combined_row = pd.Series({'SEQUENCE': most_common_contig, 'START': START, 'END': END})
-
+  combined_row = pd.Series({'SEQUENCE': most_common_contig, 'START': START_updated, 'END': END_updated})
   logging.debug(f"Check how many hits are sense or antisense")
   strand_series = df_most_common_contig['STRAND'].value_counts()
   if ('+' in strand_series) and ('-' in strand_series):
@@ -229,6 +236,9 @@ if __name__ == '__main__':
   parser.add_argument("-s", "--suffix", dest="suffix", default=".fasta", help="Genome assembly file suffix (default: .fasta)")
   parser.add_argument("--genecluster", dest="genecluster", action="store_true", help="Extract all genes to a single fasta if located on a single contig (default: false)")
   parser.add_argument("--csv", dest="csv", action="store_true", help="Use this option if your ABRicate output file is comma-separated (default: parse as tab-separated file).")
+  parser.add_argument("--flanking", dest="flanking", action="store_true", help="Extract flanking sequences")
+  parser.add_argument("--flanking-bp", dest="flanking_bp", default=100, metavar="FLANKING LENGTH", type=int, help="Length of flanking sequence to extract in bp (default: 100)")
+
   parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="Increase verbosity")
   
   args = parser.parse_args()
@@ -240,6 +250,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
   else:
     logging.basicConfig(level=logging.DEBUG)
+
+  # If user has specified --flanking-bp to another value than 100 bp, set flanking to True. Does not work if --flanking-bp 100 is specified
+  if (args.flanking_bp != 100) & (args.flanking == False):
+    logging.error(f"--flanking-bp is specified but command does include --flanking flag. Flanking sequences are not extracted.")
 
   logging.debug(f"Executing main function")
   main(args)

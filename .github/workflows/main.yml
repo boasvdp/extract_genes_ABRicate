@@ -50,6 +50,9 @@ jobs:
          # Testing for gene cluster
          python extract_genes_abricate.py -a test/input/test.tsv -g test/genomes -o test/out_genecluster -s .fasta --genecluster
          cmp test/correct/correct_genecluster.fasta test/out_genecluster/input_ncbi.out
+         # Testing with flanking sequences
+         python extract_genes_abricate.py -a test/input/flanking.tsv -g test/genomes -o test/out_flanking --flanking --flanking-bp 5
+         cmp test/correct/correct_flanking.out test/out_flanking/flanking_blaCTX-M-15.out
       - name: Tests with combined ABRicate files from multiple genomes
         run: |
          # Normal gene extraction should work for files with multiple genomes
