@@ -220,12 +220,15 @@ def main(args):
   logging.debug(f"Calling function main")
   check_outdir(args.outdir)
   df = read_abricatefile(args.abricatefile, args.csv)
-  if args.genecluster == False:
-    logging.debug(f"Executing main_genes for extraction of single genes")
-    main_genes(df, args)
+  if df.shape[0] > 0:
+    if args.genecluster == False:
+      logging.debug(f"Executing main_genes for extraction of single genes")
+      main_genes(df, args)
+    else:
+      logging.debug(f"Executing main_genecluster for extraction of gene clusters")
+      main_genecluster(df, args)
   else:
-    logging.debug(f"Executing main_genecluster for extraction of gene clusters")
-    main_genecluster(df, args)
+    logging.warning(f"No hits found in {args.abricatefile}, outputting empty directory {args.outdir}")
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Extract genes from genes based on ABRicate output.')

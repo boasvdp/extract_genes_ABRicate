@@ -56,6 +56,8 @@ jobs:
          # Testing with flanking sequences which run off the contig end
          python extract_genes_abricate.py -a test/input/flanking.tsv -g test/genomes -o test/out_flanking_15bp --flanking --flanking-bp 15
          cmp test/correct/correct_flanking_15bp.out test/out_flanking_15bp/flanking_blaCTX-M-15.out
+         # Test with empty file
+         python extract_genes_abricate.py -a test/input/test_empty.tsv -g test/genomes -o test/out_empty
       - name: Tests with combined ABRicate files from multiple genomes
         run: |
          # Normal gene extraction should work for files with multiple genomes
