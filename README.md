@@ -28,8 +28,8 @@ conda install -c conda-forge -c bioconda biopython pandas seqtk
 ## Usage
 
 ```
-usage: extract_genes_abricate.py [-h] [-a ABRICATE FILE] [-g GENOMES DIR]
-                                 [-o OUTPUT DIR] [-s SUFFIX]
+usage: extract_genes_abricate.py [-h] -a ABRICATE FILE -g GENOMES DIR -o OUTPUT DIR [-s SUFFIX] [--genecluster] [--csv] [--flanking]
+                                 [--flanking-bp FLANKING LENGTH] [-v]
 
 Extract genes from genes based on ABRicate output.
 
@@ -43,6 +43,12 @@ optional arguments:
                         directory for output
   -s SUFFIX, --suffix SUFFIX
                         Genome assembly file suffix (default: .fasta)
+  --genecluster         Extract all genes to a single fasta if located on a single contig (default: false)
+  --csv                 Use this option if your ABRicate output file is comma-separated (default: parse as tab-separated file).
+  --flanking            Extract flanking sequences
+  --flanking-bp FLANKING LENGTH
+                        Length of flanking sequence to extract in bp (default: 100)
+  -v, --verbose         Increase verbosity
 ```
 
 **IMPORTANT ASSUMPTIONS**
