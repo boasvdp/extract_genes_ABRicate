@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "van der Putten"
+  given-names: "Boas CL"
+  orcid: "https://orcid.org/0000-0002-7916-6665"
+title: "extract_genes_abricate.py"
+version: 0.0.1
+date-released: 2023-02-24
+url: "https://github.com/boasvdp/extract_genes_ABRicate"
