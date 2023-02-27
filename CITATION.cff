@@ -5,6 +5,5 @@ authors:
   given-names: "Boas CL"
   orcid: "https://orcid.org/0000-0002-7916-6665"
 title: "extract_genes_abricate.py"
-version: 0.0.1
 date-released: 2023-02-24
 url: "https://github.com/boasvdp/extract_genes_ABRicate"
