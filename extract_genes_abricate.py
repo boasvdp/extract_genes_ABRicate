@@ -289,6 +289,7 @@ def main_genecluster(df, args):
     Returns:
         None
     """
+    # This function needs refactoring
     logging.debug(f"Calling function main_genecluster")
     logging.debug(f"Parse multiple rows at once for gene cluster processing")
     genome, combination, output = parse_multiple_rows(df, args.suffix, args.genomedir)
@@ -314,8 +315,11 @@ def main_genecluster(df, args):
     combined_row = pd.Series({'SEQUENCE': most_common_contig, 'START': START_updated, 'END': END_updated})
     logging.debug(f"Check how many hits are sense or antisense")
     strand_series = df_most_common_contig['STRAND'].value_counts()
+    # Check if all genes are in same orientation
     if ('+' in strand_series) and ('-' in strand_series):
         logging.debug(f"Sense and antisense hits in abricate output")
+        # If there are more antisense than sense hits, reverse complement the sequence before writing to file
+        # If a result is written the majority of genes should be sense by then
         if strand_series.loc['-'] > strand_series.loc['+']:
             logging.debug(f"More antisense hits are found")
             decision_strand = 'antisense'
